@@ -7,7 +7,6 @@ const app = Express();
 
 app.use(BodyParser.json());
 
-app.use(BodyParser.json());
 
 app.use((req, res, next) =>{
     res.setHeader("Access-control-Allow-Origin","*");

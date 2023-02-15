@@ -17,7 +17,7 @@ export interface ParkingSpaceModel {
 }
 
 export class ParkingSpace {
-  async createParkingSpace(payload: ParkingSpaceModel) {
+  static async createParkingSpace(payload: ParkingSpaceModel) {
     const db = getDB();
     return db
       .collection("parking-space")
@@ -28,7 +28,7 @@ export class ParkingSpace {
       });
   }
 
-  async getParkingSpace(id: string) {
+  static async getParkingSpace(id: string) {
     const db = getDB();
     const psId = new ObjectId(id);
     return db
@@ -40,7 +40,7 @@ export class ParkingSpace {
       });
   }
 
-  async assignParkingBay(id: string, parkingDetails: ParkingSpaceModel) {
+  static async assignParkingBay(id: string, parkingDetails: ParkingSpaceModel) {
     const db = getDB();
     const psId = new ObjectId(id);
     return db

@@ -35,9 +35,7 @@ export const createNewParkingSpace = (req: Request, res: Response) => {
   }
 
   try {
-    const parkingSpace = new ParkingSpace();
-    parkingSpace
-      .createParkingSpace(updatedPayload)
+    ParkingSpace.createParkingSpace(updatedPayload)
       .then((results) => {
         res.status(200).send(results);
       })
@@ -52,11 +50,9 @@ export const createNewParkingSpace = (req: Request, res: Response) => {
 export const assignParkingBay = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { size, number } = req.body;
-
   let parkingSpaceDetails: ParkingSpaceModel | undefined;
   try {
-    const parkingSpace = new ParkingSpace();
-    const results = await parkingSpace.getParkingSpace(id);
+    const results = await ParkingSpace.getParkingSpace(id);
     parkingSpaceDetails = results as WithId<ParkingSpaceModel>;
   } catch (error: any) {
     res.status(error.code || 500).json({ message: error.message });
@@ -84,8 +80,7 @@ export const assignParkingBay = async (req: Request, res: Response) => {
     });
     if (vacantSlotDetails.floor >= 0 && vacantSlotDetails.bay >= 0) {
       try {
-        const parkingSpace = new ParkingSpace();
-        await parkingSpace.assignParkingBay(id, parkingSpaceDetails);
+        await ParkingSpace.assignParkingBay(id, parkingSpaceDetails);
         const updatedResponse = {
           floor: vacantSlotDetails.floor,
           size: currentSize,
@@ -105,8 +100,7 @@ export const releaseParkingBay = async (req: Request, res: Response) => {
 
   let parkingSpaceDetails: ParkingSpaceModel | undefined;
   try {
-    const parkingSpace = new ParkingSpace();
-    const results = await parkingSpace.getParkingSpace(id);
+    const results = await ParkingSpace.getParkingSpace(id);
     parkingSpaceDetails = results as WithId<ParkingSpaceModel>;
   } catch (error: any) {
     res.status(error.code || 500).json({ message: error.message });
@@ -117,8 +111,7 @@ export const releaseParkingBay = async (req: Request, res: Response) => {
       undefined;
 
     try {
-      const parkingSpace = new ParkingSpace();
-      const assignmentResults = await parkingSpace.assignParkingBay(
+      const assignmentResults = await ParkingSpace.assignParkingBay(
         id,
         parkingSpaceDetails
       );

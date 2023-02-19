@@ -1,6 +1,0 @@
-{
-    "preset": "ts-jest",
-    "coverageDirectory": "./coverage",
-    "resetMocks": true,
-    "clearMocks": true
-}

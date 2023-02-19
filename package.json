@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest -c ./jestConfig.json --coverage",
+    "test": "jest",
     "build": "tsc",
     "dev": "nodemon src/index.ts"
   },

@@ -50,16 +50,13 @@ export const createNewParkingSpace = (req: Request, res: Response) => {
 let initialHitTimeStamp = Date.now();
 const pauseTime = 3000;
 
-const waitForPrevCall = () => {
-  const difference = Date.now() - initialHitTimeStamp;
-  return difference < pauseTime;
-};
+const gapFromPrevCall = () => Date.now() - initialHitTimeStamp;
 
 export const assignParkingBay = async (req: Request, res: Response) => {
-
+  const difference = gapFromPrevCall();
   //Check if there is sufficient time gap between previous and current API call
-  if (waitForPrevCall()) {
-    await new Promise((resolve) => setTimeout(resolve, pauseTime));
+  if (difference < pauseTime) {
+    await new Promise((resolve) => setTimeout(resolve, pauseTime - difference));
   }
   initialHitTimeStamp = Date.now();
   const { id } = req.params;

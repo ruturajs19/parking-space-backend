@@ -47,75 +47,90 @@ export const createNewParkingSpace = (req: Request, res: Response) => {
   }
 };
 
+let initialHitTimeStamp = Date.now();
+const pauseTime = 3000;
+
+const waitForPrevCall = () => {
+  const difference = Date.now() - initialHitTimeStamp;
+  return difference < pauseTime;
+};
+
 export const assignParkingBay = async (req: Request, res: Response) => {
+
+  //Check if there is sufficient time gap between previous and current API call
+  if (waitForPrevCall()) {
+    await new Promise((resolve) => setTimeout(resolve, pauseTime));
+  }
+  initialHitTimeStamp = Date.now();
   const { id } = req.params;
   const { size, number } = req.body;
-  try{
-  let parkingSpaceDetails: ParkingSpaceModel | undefined;
   try {
-    const results = await ParkingSpace.getParkingSpace(id);
-    parkingSpaceDetails = results as WithId<ParkingSpaceModel>;
-  } catch (error: any) {
-    res.status(error.code || 500).json({ message: error.message });
-  }
-  if (parkingSpaceDetails && parkingSpaceDetails.slots?.length > 0) {
-    const slots = parkingSpaceDetails.slots;
-    let vacantSlotDetails: { floor: number; bay: number } = {
-      floor: -1,
-      bay: -1,
-    };
-    let currentSize: VehicleSize | undefined;
-    let currentSizeIndex = Object.keys(VehicleSize).findIndex(
-      (item) => item === size
-    );
-    while (
-      vacantSlotDetails.floor === -1 &&
-      currentSizeIndex < Object.keys(VehicleSize).length
-    ) {
-      currentSize =
-        VehicleSize[
-          Object.keys(VehicleSize)[currentSizeIndex++] as VehicleSize
-        ];
-      slots.find((slot, floor) => {
-        const currentSlot = slot[currentSize as VehicleSize];
-        for (let i = 0; i < currentSlot.size; i++) {
-          if (
-            (currentSlot.status[i] == undefined ||
-              currentSlot.status[i] == null) &&
-            parkingSpaceDetails
-          ) {
-            vacantSlotDetails = { floor, bay: i };
-            parkingSpaceDetails.slots[floor][currentSize as VehicleSize].status[
-              i
-            ] = number;
-            return true;
-          }
-        }
-      });
+    let parkingSpaceDetails: ParkingSpaceModel | undefined;
+    try {
+      const results = await ParkingSpace.getParkingSpace(id);
+      parkingSpaceDetails = results as WithId<ParkingSpaceModel>;
+    } catch (error: any) {
+      res.status(error.code || 500).json({ message: error.message });
     }
+    if (parkingSpaceDetails && parkingSpaceDetails.slots?.length > 0) {
+      const slots = parkingSpaceDetails.slots;
+      let vacantSlotDetails: { floor: number; bay: number } = {
+        floor: -1,
+        bay: -1,
+      };
+      let currentSize: VehicleSize | undefined;
+      let currentSizeIndex = Object.keys(VehicleSize).findIndex(
+        (item) => item === size
+      );
+      while (
+        vacantSlotDetails.floor === -1 &&
+        currentSizeIndex < Object.keys(VehicleSize).length
+      ) {
+        currentSize =
+          VehicleSize[
+            Object.keys(VehicleSize)[currentSizeIndex++] as VehicleSize
+          ];
+        slots.find((slot, floor) => {
+          const currentSlot = slot[currentSize as VehicleSize];
+          for (let i = 0; i < currentSlot.size; i++) {
+            if (
+              (currentSlot.status[i] == undefined ||
+                currentSlot.status[i] == null) &&
+              parkingSpaceDetails
+            ) {
+              vacantSlotDetails = { floor, bay: i };
+              parkingSpaceDetails.slots[floor][
+                currentSize as VehicleSize
+              ].status[i] = number;
+              return true;
+            }
+          }
+        });
+      }
 
-    if (
-      currentSize &&
-      vacantSlotDetails.floor >= 0 &&
-      vacantSlotDetails.bay >= 0
-    ) {
-      try {
-        await ParkingSpace.assignParkingBay(id, parkingSpaceDetails);
-        const updatedResponse = {
-          floor: vacantSlotDetails.floor,
-          size: currentSize,
-          bay: vacantSlotDetails.bay,
-        };
-        res.status(200).send(updatedResponse);
-      } catch (error: any) {
-        res.status(error.code || 500).json({ message: error.message });
+      if (
+        currentSize &&
+        vacantSlotDetails.floor >= 0 &&
+        vacantSlotDetails.bay >= 0
+      ) {
+        try {
+          await ParkingSpace.assignParkingBay(id, parkingSpaceDetails);
+          const updatedResponse = {
+            floor: vacantSlotDetails.floor,
+            size: currentSize,
+            bay: vacantSlotDetails.bay,
+          };
+          res.status(200).send(updatedResponse);
+        } catch (error: any) {
+          res.status(error.code || 500).json({ message: error.message });
+        }
+      } else {
+        res.status(404).json({ message: "No Slot Available" });
       }
     } else {
       res.status(404).json({ message: "No Slot Available" });
     }
-  } else {
-    res.status(404).json({ message: "No Slot Available" });
-  }}catch(e){
+  } catch (e) {
     res.status(500);
   }
 };

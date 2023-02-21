@@ -48,7 +48,7 @@ export class ParkingSpace {
       .updateOne({ _id: psId }, { $set: parkingDetails })
       .then((result) => result)
       .catch((error) => {
-        console.log("errordb:", error);
+        console.log("error:", error);
       });
   }
 }
